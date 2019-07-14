@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	model "github.com/Terry-Mao/goim/api/comet/grpc"
-	logic "github.com/Terry-Mao/goim/api/logic/grpc"
-	"github.com/Terry-Mao/goim/pkg/strings"
 	log "github.com/golang/glog"
+	model "github.com/jank1369/goim/api/comet/grpc"
+	logic "github.com/jank1369/goim/api/logic/grpc"
+	"github.com/jank1369/goim/pkg/strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding/gzip"
@@ -66,18 +66,18 @@ func (s *Server) Receive(ctx context.Context, mid int64, p *model.Proto) (err er
 
 // Operate operate.
 func (s *Server) Operate(ctx context.Context, p *model.Proto, ch *Channel, b *Bucket) error {
-	switch p.Op {
+	switch p.Op { //切换房间
 	case model.OpChangeRoom:
 		if err := b.ChangeRoom(string(p.Body), ch); err != nil {
 			log.Errorf("b.ChangeRoom(%s) error(%v)", p.Body, err)
 		}
 		p.Op = model.OpChangeRoomReply
-	case model.OpSub:
+	case model.OpSub: //订阅房间
 		if ops, err := strings.SplitInt32s(string(p.Body), ","); err == nil {
 			ch.Watch(ops...)
 		}
 		p.Op = model.OpSubReply
-	case model.OpUnsub:
+	case model.OpUnsub: //取消订阅房间
 		if ops, err := strings.SplitInt32s(string(p.Body), ","); err == nil {
 			ch.UnWatch(ops...)
 		}

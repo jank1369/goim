@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"github.com/bilibili/discovery/naming"
-	"github.com/Terry-Mao/goim/internal/logic/model"
 	log "github.com/golang/glog"
+	"github.com/jank1369/goim/internal/logic/model"
 )
 
 const (

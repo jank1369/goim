@@ -3,8 +3,8 @@ package comet
 import (
 	"sync"
 
-	"github.com/Terry-Mao/goim/api/comet/grpc"
-	"github.com/Terry-Mao/goim/pkg/bufio"
+	"github.com/jank1369/goim/api/comet/grpc"
+	"github.com/jank1369/goim/pkg/bufio"
 )
 
 // Channel used by message pusher send msg to write goroutine.
@@ -34,10 +34,10 @@ func NewChannel(cli, svr int) *Channel {
 }
 
 // Watch watch a operation.
-func (c *Channel) Watch(accepts ...int32) {
+func (c *Channel) Watch(accepts ...int32) { //监听该会话的所有房间
 	c.mutex.Lock()
 	for _, op := range accepts {
-		c.watchOps[op] = struct{}{}
+		c.watchOps[op] = struct{}{} //把对应的房间加入该会话的缓存
 	}
 	c.mutex.Unlock()
 }

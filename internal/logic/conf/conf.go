@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/bilibili/discovery/naming"
-	xtime "github.com/Terry-Mao/goim/pkg/time"
+	xtime "github.com/jank1369/goim/pkg/time"
 
 	"github.com/BurntSushi/toml"
 )
@@ -29,10 +29,10 @@ func init() {
 		defHost, _   = os.Hostname()
 		defWeight, _ = strconv.ParseInt(os.Getenv("WEIGHT"), 10, 32)
 	)
-	flag.StringVar(&confPath, "conf", "logic-example.toml", "default config path")
-	flag.StringVar(&region, "region", os.Getenv("REGION"), "avaliable region. or use REGION env variable, value: sh etc.")
-	flag.StringVar(&zone, "zone", os.Getenv("ZONE"), "avaliable zone. or use ZONE env variable, value: sh001/sh002 etc.")
-	flag.StringVar(&deployEnv, "deploy.env", os.Getenv("DEPLOY_ENV"), "deploy env. or use DEPLOY_ENV env variable, value: dev/fat1/uat/pre/prod etc.")
+	flag.StringVar(&confPath, "c", "logic-example.toml", "default config path")
+	flag.StringVar(&region, "r", os.Getenv("REGION"), "avaliable region. or use REGION env variable, value: sh etc.")
+	flag.StringVar(&zone, "z", os.Getenv("ZONE"), "avaliable zone. or use ZONE env variable, value: sh001/sh002 etc.")
+	flag.StringVar(&deployEnv, "de", os.Getenv("DEPLOY_ENV"), "deploy env. or use DEPLOY_ENV env variable, value: dev/fat1/uat/pre/prod etc.")
 	flag.StringVar(&host, "host", defHost, "machine hostname. or use default machine hostname.")
 	flag.Int64Var(&weight, "weight", defWeight, "load balancing weight, or use WEIGHT env variable, value: 10 etc.")
 }

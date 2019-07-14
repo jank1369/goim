@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bilibili/discovery/naming"
 	"github.com/BurntSushi/toml"
-	xtime "github.com/Terry-Mao/goim/pkg/time"
+	"github.com/bilibili/discovery/naming"
+	xtime "github.com/jank1369/goim/pkg/time"
 )
 
 var (
@@ -35,10 +35,10 @@ func init() {
 		defOffline, _ = strconv.ParseBool(os.Getenv("OFFLINE"))
 		defDebug, _   = strconv.ParseBool(os.Getenv("DEBUG"))
 	)
-	flag.StringVar(&confPath, "conf", "comet-example.toml", "default config path.")
-	flag.StringVar(&region, "region", os.Getenv("REGION"), "avaliable region. or use REGION env variable, value: sh etc.")
-	flag.StringVar(&zone, "zone", os.Getenv("ZONE"), "avaliable zone. or use ZONE env variable, value: sh001/sh002 etc.")
-	flag.StringVar(&deployEnv, "deploy.env", os.Getenv("DEPLOY_ENV"), "deploy env. or use DEPLOY_ENV env variable, value: dev/fat1/uat/pre/prod etc.")
+	flag.StringVar(&confPath, "c", "comet-example.toml", "default config path.")
+	flag.StringVar(&region, "r", os.Getenv("REGION"), "avaliable region. or use REGION env variable, value: sh etc.")
+	flag.StringVar(&zone, "z", os.Getenv("ZONE"), "avaliable zone. or use ZONE env variable, value: sh001/sh002 etc.")
+	flag.StringVar(&deployEnv, "de", os.Getenv("DEPLOY_ENV"), "deploy env. or use DEPLOY_ENV env variable, value: dev/fat1/uat/pre/prod etc.")
 	flag.StringVar(&host, "host", defHost, "machine hostname. or use default machine hostname.")
 	flag.StringVar(&addrs, "addrs", defAddrs, "server public ip addrs. or use ADDRS env variable, value: 127.0.0.1 etc.")
 	flag.Int64Var(&weight, "weight", defWeight, "load balancing weight, or use WEIGHT env variable, value: 10 etc.")

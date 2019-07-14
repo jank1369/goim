@@ -4,8 +4,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/Terry-Mao/goim/api/comet/grpc"
-	"github.com/Terry-Mao/goim/internal/comet/conf"
+	"github.com/jank1369/goim/api/comet/grpc"
+	"github.com/jank1369/goim/internal/comet/conf"
 )
 
 // Bucket is a channel holder.
@@ -88,7 +88,7 @@ func (b *Bucket) ChangeRoom(nrid string, ch *Channel) (err error) {
 	if oroom != nil && oroom.Del(ch) {
 		b.DelRoom(oroom)
 	}
-	
+
 	if err = nroom.Put(ch); err != nil {
 		return
 	}

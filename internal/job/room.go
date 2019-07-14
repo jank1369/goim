@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	comet "github.com/Terry-Mao/goim/api/comet/grpc"
-	"github.com/Terry-Mao/goim/internal/job/conf"
-	"github.com/Terry-Mao/goim/pkg/bytes"
 	log "github.com/golang/glog"
+	comet "github.com/jank1369/goim/api/comet/grpc"
+	"github.com/jank1369/goim/internal/job/conf"
+	"github.com/jank1369/goim/pkg/bytes"
 )
 
 var (

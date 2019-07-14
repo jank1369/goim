@@ -1,10 +1,10 @@
 package comet
 
 import (
-	"github.com/Terry-Mao/goim/api/comet/grpc"
-	"github.com/Terry-Mao/goim/internal/comet/conf"
-	"github.com/Terry-Mao/goim/internal/comet/errors"
 	log "github.com/golang/glog"
+	"github.com/jank1369/goim/api/comet/grpc"
+	"github.com/jank1369/goim/internal/comet/conf"
+	"github.com/jank1369/goim/internal/comet/errors"
 )
 
 // Ring ring proto buffer.
@@ -32,7 +32,7 @@ func (r *Ring) Init(num int) {
 	r.init(uint64(num))
 }
 
-func (r *Ring) init(num uint64) {
+func (r *Ring) init(num uint64) { //官方配置值为5
 	// 2^N
 	if num&(num-1) != 0 {
 		for num&(num-1) != 0 {
@@ -41,8 +41,8 @@ func (r *Ring) init(num uint64) {
 		num = num << 1
 	}
 	r.data = make([]grpc.Proto, num)
-	r.num = num
-	r.mask = r.num - 1
+	r.num = num        //根据官方配置，num = 8
+	r.mask = r.num - 1 //7
 }
 
 // Get get a proto from ring.

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/bilibili/discovery/naming"
-	pb "github.com/Terry-Mao/goim/api/logic/grpc"
-	"github.com/Terry-Mao/goim/internal/logic/model"
 	log "github.com/golang/glog"
+	pb "github.com/jank1369/goim/api/logic/grpc"
+	"github.com/jank1369/goim/internal/logic/model"
 )
 
 // NodesInstances get servers info.

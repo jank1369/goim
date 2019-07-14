@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Terry-Mao/goim/api/comet/grpc"
-	"github.com/Terry-Mao/goim/internal/comet/conf"
-	"github.com/Terry-Mao/goim/pkg/bytes"
-	xtime "github.com/Terry-Mao/goim/pkg/time"
-	"github.com/Terry-Mao/goim/pkg/websocket"
 	log "github.com/golang/glog"
+	"github.com/jank1369/goim/api/comet/grpc"
+	"github.com/jank1369/goim/internal/comet/conf"
+	"github.com/jank1369/goim/pkg/bytes"
+	xtime "github.com/jank1369/goim/pkg/time"
+	"github.com/jank1369/goim/pkg/websocket"
 )
 
 // InitWebsocket listen all tcp.bind and start accept connections.

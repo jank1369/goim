@@ -3,8 +3,8 @@ package comet
 import (
 	"sync"
 
-	"github.com/Terry-Mao/goim/api/comet/grpc"
-	"github.com/Terry-Mao/goim/internal/comet/errors"
+	"github.com/jank1369/goim/api/comet/grpc"
+	"github.com/jank1369/goim/internal/comet/errors"
 )
 
 // Room is a room and store channel room info.
@@ -73,7 +73,7 @@ func (r *Room) Push(p *grpc.Proto) {
 	r.rLock.RUnlock()
 }
 
-// Close close the room.
+// Close close the room.,房间关闭时，房间中的用户会话也将逐一关闭
 func (r *Room) Close() {
 	r.rLock.RLock()
 	for ch := r.next; ch != nil; ch = ch.Next {

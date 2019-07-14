@@ -108,7 +108,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		lastHb  = time.Now()
 		rb      = rp.Get()
 		wb      = wp.Get()
-		ch      = NewChannel(s.c.Protocol.CliProto, s.c.Protocol.SvrProto)
+		ch      = NewChannel(s.c.Protocol.CliProto, s.c.Protocol.SvrProto) //5,10
 		rr      = &ch.Reader
 		wr      = &ch.Writer
 	)
@@ -118,6 +118,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 	defer cancel()
 	// handshake
 	step := 0
+	//设置心跳，5s 一次，超时断开。
 	trd = tr.Add(time.Duration(s.c.Protocol.HandshakeTimeout), func() {
 		conn.Close()
 		log.Errorf("key: %s remoteIP: %s step: %d tcp handshake timeout", ch.Key, conn.RemoteAddr().String(), step)
@@ -125,7 +126,9 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 	ch.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 	// must not setadv, only used in auth
 	step = 1
+	//获取一个空的proto结构体
 	if p, err = ch.CliProto.Set(); err == nil {
+		//如果是新登陆的用户，则登陆并获取登陆信息
 		if ch.Mid, ch.Key, rid, accepts, hb, err = s.authTCP(ctx, rr, wr, p); err == nil {
 			ch.Watch(accepts...)
 			b = s.Bucket(ch.Key)
@@ -136,6 +139,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		}
 	}
 	step = 2
+	//验证用户登陆失败，断开连接，及相关操作
 	if err != nil {
 		conn.Close()
 		rp.Put(rb)
@@ -152,26 +156,30 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 	}
 	step = 3
 	// hanshake ok start dispatch goroutine
-	go s.dispatchTCP(conn, wr, wp, wb, ch)
-	serverHeartbeat := s.RandServerHearbeat()
+	go s.dispatchTCP(conn, wr, wp, wb, ch) //负责给对应的用户/群推消息
+
+	serverHeartbeat := s.RandServerHearbeat() // 10 ~ 30 分钟
 	for {
+		//每次获取一个空的Proto消息结构
 		if p, err = ch.CliProto.Set(); err != nil {
 			break
 		}
 		if white {
 			whitelist.Printf("key: %s start read proto\n", ch.Key)
 		}
-		if err = p.ReadTCP(rr); err != nil {
+		if err = p.ReadTCP(rr); err != nil { //读取tcp 内容
 			break
 		}
 		if white {
 			whitelist.Printf("key: %s read proto:%v\n", ch.Key, p)
 		}
+		//如果是心跳操作
 		if p.Op == grpc.OpHeartbeat {
 			tr.Set(trd, hb)
 			p.Op = grpc.OpHeartbeatReply
 			p.Body = nil
 			// NOTE: send server heartbeat for a long time
+			// 到了给logic 发送 某个用户连接正常的心跳时间，并更新最新访问时间
 			if now := time.Now(); now.Sub(lastHb) > serverHeartbeat {
 				if err1 := s.Heartbeat(ctx, ch.Mid, ch.Key); err1 == nil {
 					lastHb = now
@@ -181,7 +189,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 				log.Infof("tcp heartbeat receive key:%s, mid:%d", ch.Key, ch.Mid)
 			}
 			step++
-		} else {
+		} else { //如果是其他操作，调用Operate函数k
 			if err = s.Operate(ctx, p, ch, b); err != nil {
 				break
 			}
@@ -189,8 +197,8 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		if white {
 			whitelist.Printf("key: %s process proto:%v\n", ch.Key, p)
 		}
-		ch.CliProto.SetAdv()
-		ch.Signal()
+		ch.CliProto.SetAdv() //r.wp++
+		ch.Signal()          //向signal写入ready信息，表示会话连接正常，
 		if white {
 			whitelist.Printf("key: %s signal\n", ch.Key)
 		}
@@ -234,15 +242,15 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 		if white {
 			whitelist.Printf("key: %s wait proto ready\n", ch.Key)
 		}
-		var p = ch.Ready()
+		var p = ch.Ready() //用户会话，阻塞等待消息
 		if white {
 			whitelist.Printf("key: %s proto ready\n", ch.Key)
 		}
 		if conf.Conf.Debug {
 			log.Infof("key:%s dispatch msg:%v", ch.Key, *p)
 		}
-		switch p {
-		case grpc.ProtoFinish:
+		switch p { //判断用户会话接收到的消息类型，
+		case grpc.ProtoFinish: //会话结束
 			if white {
 				whitelist.Printf("key: %s receive proto finish\n", ch.Key)
 			}
@@ -251,15 +259,17 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 			}
 			finish = true
 			goto failed
-		case grpc.ProtoReady:
+		case grpc.ProtoReady: //会话创建，循环向客户端写数据
 			// fetch message from svrbox(client send)
 			for {
+				//获取一个待写的空Proto
 				if p, err = ch.CliProto.Get(); err != nil {
 					break
 				}
 				if white {
 					whitelist.Printf("key: %s start write client proto%v\n", ch.Key, p)
 				}
+				//如果是心跳返回包，则获取当前房间在线人数，并推送个客户端
 				if p.Op == grpc.OpHeartbeatReply {
 					if ch.Room != nil {
 						online = ch.Room.OnlineNum()
@@ -267,7 +277,7 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 					if err = p.WriteTCPHeart(wr, online); err != nil {
 						goto failed
 					}
-				} else {
+				} else { //其他消息则直接推送
 					if err = p.WriteTCP(wr); err != nil {
 						goto failed
 					}
@@ -325,19 +335,22 @@ failed:
 // auth for goim handshake with client, use rsa & aes.
 func (s *Server) authTCP(ctx context.Context, rr *bufio.Reader, wr *bufio.Writer, p *grpc.Proto) (mid int64, key, rid string, accepts []int32, hb time.Duration, err error) {
 	for {
-		if err = p.ReadTCP(rr); err != nil {
+		if err = p.ReadTCP(rr); err != nil { //读取tcp 内容，并写入Proto中
 			return
 		}
-		if p.Op == grpc.OpAuth {
+		if p.Op == grpc.OpAuth { //判断是否为登陆用户操作
 			break
 		} else {
 			log.Errorf("tcp request operation(%d) not auth", p.Op)
 		}
 	}
+	//grpc 调用logic，登陆用户，返回信息
 	if mid, key, rid, accepts, hb, err = s.Connect(ctx, p, ""); err != nil {
 		log.Errorf("authTCP.Connect(key:%v).err(%v)", key, err)
 		return
 	}
+
+	//立即给客户端返回一条用户登陆成功的信息
 	p.Op = grpc.OpAuthReply
 	p.Body = nil
 	if err = p.WriteTCP(wr); err != nil {
